@@ -1,4 +1,4 @@
-FROM ghcr.io/freebsd/freebsd-runtime:15.snap
+FROM ghcr.io/freebsd/freebsd-runtime:{{ freebsd_version }}
 RUN /usr/bin/env pkg upgrade -yr FreeBSD-base
 RUN rm -f /usr/local/etc/pkg/repos/base.conf
 COPY files/repos /usr/local/etc/pkg/repos
@@ -28,12 +28,12 @@ RUN /usr/bin/env pkg install -yr FreeBSD \
     simdjson \
     && rm -f /var/cache/pkg/*
 
-RUN /usr/bin/env pkg install -yr FreeBSD archivers/liblz4 archivers/zstd \
-    && rm -f /var/cache/pkg/*
+{{ install_archivers_line_1 }}
+{{ install_archivers_line_2 }}
 
-RUN /usr/bin/env pkg install -yr FreeBSD www/node22 \
-    www/npm-node22 \
-    www/yarn-node22 \
+RUN /usr/bin/env pkg install -yr FreeBSD www/node{{ node_version }} \
+    www/npm-node{{ node_version }} \
+    www/yarn-node{{ node_version }} \
     && rm -f /var/cache/pkg/*
 
 COPY --chmod=755 docker-entrypoint.sh /usr/local/bin/
