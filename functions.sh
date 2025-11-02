@@ -19,10 +19,13 @@ fatal() {
 #
 # This is used to get the target architecture for docker image.
 # For crossing building, we need a way to specify the target
-# architecutre manually.
+# architecture manually.
 function get_arch() {
   local arch
   case $(uname -m) in
+    amd64)
+      arch="amd64"
+      ;;
     x86_64)
       arch="amd64"
       ;;
@@ -63,8 +66,11 @@ function get_variants() {
   local variants=()
 
   arch=$(get_arch)
+  echo $dir >> output.txt
+  echo $arch >> output.txt
   variantsfilter=("$@")
   IFS=' ' read -ra availablevariants <<< "$(grep "^${arch}" "${dir}/architectures" | sed -E 's/'"${arch}"'[[:space:]]*//' | sed -E 's/,/ /g')"
+  echo $availablevariants >> output.txt
 
   if [ ${#variantsfilter[@]} -gt 0 ]; then
     for variant1 in "${availablevariants[@]}"; do
@@ -192,6 +198,20 @@ function is_debian_slim() {
   IFS=' ' read -ra debianVersions <<< "$(get_config "./" "debian_versions")"
   for d in "${debianVersions[@]}"; do
     if [ "${d}-slim" = "${variant}" ]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+function is_freebsd() {
+  local variant
+  variant=$1
+  shift
+
+  IFS=' ' read -ra freebsdVersions <<< "$(get_config "./" "freebsd_versions")"
+  for d in "${freebsdVersions[@]}"; do
+    if [ "${d}" = "${variant}" ]; then
       return 0
     fi
   done

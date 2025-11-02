@@ -2,3 +2,4 @@ baseuri     https://nodejs.org/dist
 default_variant bookworm
 alpine_version  3.22
 debian_versions bookworm bullseye trixie
+freebsd_versions  14.3 14.snap 15.snap 16.snap
