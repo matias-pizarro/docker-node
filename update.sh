@@ -49,8 +49,6 @@ done
 
 cd "$(cd "${0%/*}" && pwd -P)"
 
-echo $(pwd)
-
 IFS=',' read -ra versions_arg <<< "${1:-}"
 IFS=',' read -ra variant_arg <<< "${2:-}"
 
@@ -62,14 +60,13 @@ if [ ${#versions[@]} -eq 0 ]; then
 fi
 
 # Global variables
-# Get architecture and use this as target architecture for docker image
+# Get architecure and use this as target architecture for docker image
 # See details in function.sh
 # TODO: Should be able to specify target architecture manually
 arch=$(get_arch)
 
 if [ "${SKIP}" != true ]; then
-  # yarnVersion="$(curl -sSL --compressed https://yarnpkg.com/latest-version)"
-  yarnVersion="1.22.19"
+  yarnVersion="$(curl -sSL --compressed https://yarnpkg.com/latest-version)"
 fi
 
 function in_versions_to_update() {
@@ -126,8 +123,63 @@ function update_node_version() {
 
   fullVersion="$(curl -sSL --compressed "${baseuri}" | grep '<a href="v'"${version}." | sed -E 's!.*<a href="v([^"/]+)/?".*!\1!' | cut -d'.' -f2,3 | sort -V | tail -1)"
   (
-    echo ${template}
     cp "${template}" "${dockerfile}-tmp"
+    local fromprefix=""
+    if [ "${arch}" != "amd64" ] && [ "${arch}" != "arm64" ]; then
+      fromprefix="${arch}\\/"
+    fi
+
+    nodeVersion="${version}.${fullVersion:-0}"
+
+    sed -Ei -e 's/^FROM (.*)/FROM '"$fromprefix"'\1/' "${dockerfile}-tmp"
+    sed -Ei -e 's/^(ENV NODE_VERSION ).*/\1'"${nodeVersion}"'/' "${dockerfile}-tmp"
+
+    # shellcheck disable=SC1004
+    new_line=' \\\
+'
+
+    # Add GPG keys
+    for key_type in "node" "yarn"; do
+      while read -r line; do
+        pattern='"\$\{'$(echo "${key_type}" | tr '[:lower:]' '[:upper:]')'_KEYS\[@\]\}"'
+        sed -Ei -e "s/([ \\t]*)(${pattern})/\\1${line}${new_line}\\1\\2/" "${dockerfile}-tmp"
+      done < "keys/${key_type}.keys"
+      sed -Ei -e "/${pattern}/d" "${dockerfile}-tmp"
+    done
+
+    if is_alpine "${variant}"; then
+      alpine_version="${variant#*alpine}"
+      checksum=$(
+        curl -sSL --compressed "https://unofficial-builds.nodejs.org/download/release/v${nodeVersion}/SHASUMS256.txt" | grep "node-v${nodeVersion}-linux-x64-musl.tar.xz" | cut -d' ' -f1
+      )
+      if [ -z "$checksum" ]; then
+        rm -f "${dockerfile}-tmp"
+        fatal "Failed to fetch checksum for version ${nodeVersion}"
+      fi
+      sed -Ei -e "s/(alpine:)0.0/\\1${alpine_version}/" "${dockerfile}-tmp"
+      sed -Ei -e "s/CHECKSUM=CHECKSUM_x64/CHECKSUM=\"${checksum}\"/" "${dockerfile}-tmp"
+
+    elif is_debian "${variant}"; then
+      sed -Ei -e "s/(buildpack-deps:)name/\\1${variant}/" "${dockerfile}-tmp"
+    elif is_debian_slim "${variant}"; then
+      sed -Ei -e "s/(debian:)name-slim/\\1${variant}/" "${dockerfile}-tmp"
+    fi
+
+    if diff -q "${dockerfile}-tmp" "${dockerfile}" > /dev/null; then
+      echo "${dockerfile} is already up to date!"
+    else
+      if [ "${SKIP}" != true ]; then
+        sed -Ei -e 's/^(ENV YARN_VERSION ).*/\1'"${yarnVersion}"'/' "${dockerfile}-tmp"
+      fi
+      echo "${dockerfile} updated!"
+    fi
+
+    # Required for POSIX sed
+    if [ -f "${dockerfile}-tmp-e" ]; then
+      rm "${dockerfile}-tmp-e"
+    fi
+
+    mv -f "${dockerfile}-tmp" "${dockerfile}"
   )
 }
 
@@ -135,13 +187,9 @@ pids=()
 
 for version in "${versions[@]}"; do
   parentpath=$(dirname "${version}")
-  echo "${parentpath}"
   versionnum=$(basename "${version}")
-  echo "${versionnum}"
   baseuri=$(get_config "${parentpath}" "baseuri")
-  echo "${baseuri}"
   update_version=$(in_versions_to_update "${version}")
-  echo "${update_version}"
 
   [ "${update_version}" -eq 0 ] && info "Updating version ${version}..."
 
@@ -169,8 +217,6 @@ for version in "${versions[@]}"; do
       template_file="${parentpath}/Dockerfile-slim.template"
     elif is_alpine "${variant}"; then
       template_file="${parentpath}/Dockerfile-alpine.template"
-    elif is_freebsd "${variant}"; then
-      template_file="${parentpath}/Dockerfile-freebsd.template"
     fi
 
     cp "${parentpath}/docker-entrypoint.sh" "${version}/${variant}/docker-entrypoint.sh"
