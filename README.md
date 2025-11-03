@@ -45,7 +45,7 @@ fast, scalable network applications. Node.js uses an event-driven, non-blocking
 I/O model that makes it lightweight and efficient, perfect for data-intensive
 real-time applications that run across distributed devices.
 
-See: http://nodejs.org
+See: https://nodejs.org
 
 ## How to use this image
 
@@ -121,7 +121,7 @@ simply use `ENV` to override `NPM_CONFIG_LOGLEVEL`.
 
 ```dockerfile
 FROM node
-ENV NPM_CONFIG_LOGLEVEL info
+ENV NPM_CONFIG_LOGLEVEL=info
 ...
 ```
 
@@ -167,15 +167,15 @@ need to install, thus reducing the overall size of all images on your system.
 ### `node:alpine`
 
 This image is based on the popular
-[Alpine Linux project](http://alpinelinux.org), available in
+[Alpine Linux project](https://alpinelinux.org), available in
 [the `alpine` official image](https://hub.docker.com/_/alpine). Alpine Linux is
 much smaller than most distribution base images (~5MB), and thus leads to much
 slimmer images in general.
 
 This variant is highly recommended when final image size being as small as
 possible is desired. The main caveat to note is that it does use
-[musl libc](http://www.musl-libc.org) instead of
-[glibc and friends](http://www.etalabs.net/compare_libcs.html), so certain
+[musl libc](https://www.musl-libc.org) instead of
+[glibc and friends](https://www.etalabs.net/compare_libcs.html), so certain
 software might run into issues depending on the depth of their libc
 requirements. However, most software doesn't have an issue with this, so this
 variant is usually a very safe choice. See
@@ -205,19 +205,19 @@ To make the image size even smaller, you can [bundle without npm/yarn](./docs/Be
 ### `node:bullseye`
 
 This image is based on version 11 of
-[Debian](http://debian.org), available in
+[Debian](https://debian.org), available in
 [the `debian` official image](https://hub.docker.com/_/debian).
 
 ### `node:bookworm`
 
 This image is based on version 12 of
-[Debian](http://debian.org), available in
+[Debian](https://debian.org), available in
 [the `debian` official image](https://hub.docker.com/_/debian).
 
 ### `node:trixie`
 
 This image is based on version 13 of
-[Debian](http://debian.org), available in
+[Debian](https://debian.org), available in
 [the `debian` official image](https://hub.docker.com/_/debian).
 
 ### `node:slim`
@@ -263,7 +263,6 @@ about the expectations for all contributors to this project.
 
 ### Docker Working Group Collaborators
 
-- Mikeal Rogers ([mikeal](https://github.com/mikeal))
 - Laurent Goderre ([LaurentGoderre](https://github.com/LaurentGoderre))
 - Simen Bekkhus ([SimenB](https://github.com/SimenB))
 - Peter Dave Hello ([PeterDaveHello](https://github.com/PeterDaveHello))
@@ -272,5 +271,6 @@ about the expectations for all contributors to this project.
 
 #### Docker Working Group Members
 
+- Mikeal Rogers ([mikeal](https://github.com/mikeal))
 - Christopher Horrell ([chorrell](https://github.com/chorrell))
 - Peter Petrov ([pesho](https://github.com/pesho))

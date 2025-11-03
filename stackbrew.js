@@ -28,8 +28,7 @@ const versions = Object.keys(config).reverse()
 let midnight = new Date()
 midnight.setHours(0, 0, 0, 0)
 const now = midnight.getTime()
-const alpineRE = new RegExp(/alpine*/);
-const freebsdRE = new RegExp(/freebsd*/);
+const aplineRE = new RegExp(/alpine*/);
 const slimRE = new RegExp(/\*-slim/);
 let foundLTS = false;
 let foundCurrent = false;
@@ -44,21 +43,18 @@ for (version of versions) {
   let codename = config[version].codename
   let defaultAlpine = config[version]['alpine-default']
   let defaultDebian = config[version]['debian-default']
-  let defaultFreebsd = config[version]['freebsd-default']
   let variants = config[version].variants
   let fullversion;
   for (variant in variants) {
     let dockerfilePath = path.join(version, variant, 'Dockerfile');
-    let isAlpine = alpineRE.test(variant)
-    let isFreebsd = freebsdRE.test(variant)
-    let isDefaultFreebsd = new RegExp(`${defaultFreebsd}`).test(variant)
+    let isAlpine = aplineRE.test(variant)
     let isSlim = slimRE.test(variant)
     let isDefaultSlim = new RegExp(`${defaultDebian}-slim`).test(variant)
 
     // Get full version from the first Dockerfile
     if (!fullversion) {
       let dockerfile = fs.readFileSync(dockerfilePath, 'utf-8')
-      fullversion = dockerfile.match(/ENV NODE_VERSION (?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)/)
+      fullversion = dockerfile.match(/ENV NODE_VERSION=(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)/)
     }
     let tags = [
       `${fullversion.groups.major}.${fullversion.groups.minor}.${fullversion.groups.patch}-${variant}`,
@@ -101,20 +97,6 @@ for (version of versions) {
       }
     }
 
-    if (variant === defaultFreebsd) {
-      tags.push(`${fullversion.groups.major}.${fullversion.groups.minor}.${fullversion.groups.patch}`)
-      tags.push(`${fullversion.groups.major}.${fullversion.groups.minor}`)
-      tags.push(`${fullversion.groups.major}`)
-      if (isFreebsd) {
-        tags.push(`${fullversion.groups.major}.${fullversion.groups.minor}.${fullversion.groups.patch}-freebsd`)
-        tags.push(`${fullversion.groups.major}.${fullversion.groups.minor}-freebsd`)
-        tags.push(`${fullversion.groups.major}-freebsd`)
-      }
-      if (codename) {
-        tags.push(`${codename}`)
-      }
-    }
-
     if (isCurrent) {
       if (variant === defaultAlpine) {
         tags.push(variant)
@@ -125,11 +107,6 @@ for (version of versions) {
         tags.push('current-alpine')
       }
       if (variant === defaultDebian) {
-        tags.push(variant)
-        tags.push('latest')
-        tags.push('current')
-      }
-      if (variant === defaultFreebsd) {
         tags.push(variant)
         tags.push('latest')
         tags.push('current')
@@ -163,9 +140,6 @@ for (version of versions) {
       }
       if (variant === defaultAlpine) {
         tags.push(`lts-alpine`)
-      }
-      if (variant === defaultFreebsd) {
-        tags.push(`lts-freebsd`)
       }
     }
 

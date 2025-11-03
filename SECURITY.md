@@ -8,6 +8,5 @@ CVEs for the base image packages should be reported to those repositories. Nothi
 
 - [Alpine](https://github.com/alpinelinux/docker-alpine)
 - [Debian (bullseye, bookworm, trixie)](https://github.com/debuerreotype/docker-debian-artifacts)
-- [FreeBSD (14, 15, 16)](https://bugs.freebsd.org/bugzilla/enter_bug.cgi)
 
 When base images are patched, the images are rebuilt and rolled out to the Docker hub without intervention by this repo. This process is explained in <https://github.com/docker-library/faq/#why-does-my-security-scanner-show-that-an-image-has-cves>.

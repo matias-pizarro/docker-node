@@ -1,6 +1,6 @@
 FROM alpine:3.22
 
-ENV NODE_VERSION 24.10.0
+ENV NODE_VERSION=24.11.0
 
 RUN addgroup -g 1000 node \
     && adduser -u 1000 -G node -s /bin/sh -D node \
@@ -10,7 +10,7 @@ RUN addgroup -g 1000 node \
         curl \
     && ARCH= OPENSSL_ARCH='linux*' && alpineArch="$(apk --print-arch)" \
       && case "${alpineArch##*-}" in \
-        x86_64) ARCH='x64' CHECKSUM="aee06f91aaa1c3af0ce1371c035344f475905ea0935c0a8a71eff1d21e78f4e5" OPENSSL_ARCH=linux-x86_64;; \
+        x86_64) ARCH='x64' CHECKSUM="7dd9412f284aaf215d0f9b14e841a3f4c31a85dee2dc58e0e81f9fcf2b92f4e7" OPENSSL_ARCH=linux-x86_64;; \
         x86) OPENSSL_ARCH=linux-elf;; \
         aarch64) OPENSSL_ARCH=linux-aarch64;; \
         arm*) OPENSSL_ARCH=linux-armv4;; \
@@ -78,7 +78,7 @@ RUN addgroup -g 1000 node \
   && npm --version \
   && rm -rf /tmp/*
 
-ENV YARN_VERSION 1.22.22
+ENV YARN_VERSION=1.22.22
 
 RUN apk add --no-cache --virtual .build-deps-yarn curl gnupg tar \
   # use pre-existing gpg directory, see https://github.com/nodejs/docker-node/pull/1895#issuecomment-1550389150
